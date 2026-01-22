@@ -40,7 +40,7 @@ export interface TaskList {
 export const nhlApi = {
   // Generate NHL previews (async)
   generatePreviews: async (blogs?: string[]) => {
-    const response = await api.post('/generate/nhl', { blogs })
+    const response = await api.post('/generate/nhl', blogs ? { blogs } : null)
     return response.data
   },
 
