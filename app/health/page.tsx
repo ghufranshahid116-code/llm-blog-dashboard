@@ -25,7 +25,7 @@ export default function HealthPage() {
   useEffect(() => {
     const fetchHealthData = async () => {
       try {
-        const response = await fetch("http://localhost:8001/health");
+        const response = await fetch("http://104.131.28.18/api/health");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
