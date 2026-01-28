@@ -7,9 +7,14 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 
 export default function ArticlesPage() {
   const [page, setPage] = useState(0)
+  const [expandedArticles, setExpandedArticles] = useState<{ [key: number]: boolean }>({})
   const limit = 20
 
   const { data, isLoading } = useArticles(limit, page * limit)
+
+  const toggleExpand = (index: number) => {
+    setExpandedArticles(prev => ({ ...prev, [index]: !prev[index] }))
+  }
 
   return (
     <div className="space-y-6">
@@ -26,38 +31,53 @@ export default function ArticlesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {data?.map((article: any, index: number) => (
-            <div
-              key={index}
-              className="card hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <FileText className="w-6 h-6 text-primary-600" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {article.title || 'Untitled Article'}
-                    </h3>
+          {data?.map((article: any, index: number) => {
+            const isExpanded = expandedArticles[index] || false
 
-                    <div className="flex items-center space-x-2 mt-1 text-sm text-gray-500">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {article.created_at
-                          ? new Date(article.created_at).toLocaleDateString()
-                          : 'Unknown date'}
-                      </span>
+            return (
+              <div
+                key={index}
+                className="card hover:shadow-md transition-shadow p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-6 h-6 text-primary-600" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {article.title || 'Untitled Article'}
+                      </h3>
+
+                      <div className="flex items-center space-x-2 mt-1 text-sm text-gray-500">
+                        <Calendar className="w-4 h-4" />
+                        <span>
+                          {article.created_at
+                            ? new Date(article.created_at).toLocaleDateString()
+                            : 'Unknown date'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {article.content && (
-                <p className="text-sm text-gray-700 mt-3 line-clamp-3">
-                  {article.content}
-                </p>
-              )}
-            </div>
-          ))}
+                {article.content && (
+                  <div className="mt-3 text-sm text-gray-700">
+                    <p className={isExpanded ? '' : 'line-clamp-3'}>
+                      {article.content}
+                    </p>
+
+                    {article.content.split(' ').length > 30 && (
+                      <button
+                        onClick={() => toggleExpand(index)}
+                        className="text-primary-600 font-medium mt-1"
+                      >
+                        {isExpanded ? 'See Less' : 'See More'}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
 
           {/* Pagination */}
           <div className="flex justify-between pt-4">
