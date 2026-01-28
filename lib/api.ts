@@ -16,6 +16,8 @@ export interface Blog {
   url: string
   username: string
   active: boolean
+  system_prompt?: string 
+  user_instructions?: string  
   throttle_delay: number
   created_at: string
 }
@@ -43,6 +45,7 @@ export const nhlApi = {
     const response = await api.post('/generate/nhl', blogs ? { blogs } : null)
     return response.data
   },
+
 
   // Generate NHL previews (sync)
   generatePreviewsSync: async (blogs?: string[]) => {
@@ -91,4 +94,10 @@ export const nhlApi = {
     const response = await api.get('/health')
     return response.data
   },
+  // Update a blog partially
+deactivateBlog: async (blogId: number, data: Partial<Blog>) => {
+  const response = await api.patch(`/blogs/${blogId}`, data)
+  return response.data
+}
+
 }
