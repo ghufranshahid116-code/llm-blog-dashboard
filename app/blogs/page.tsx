@@ -37,7 +37,10 @@ export default function BlogsPage() {
         </div>
         <button
           className="btn-primary"
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setEditingBlog(null)
+            setShowForm(true)
+          }}
         >
           Add New Blog
         </button>
@@ -47,7 +50,11 @@ export default function BlogsPage() {
         <BlogForm
           blog={editingBlog}
           onSave={handleSave}
-          onClose={() => setShowForm(false)}
+          onClose={() => {
+            setShowForm(false)
+            setEditingBlog(null)
+          }}
+
         />
       )}
 
@@ -57,11 +64,10 @@ export default function BlogsPage() {
           <button
             key={filter}
             onClick={() => setFilterActive(filter)}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              filterActive === filter
+            className={`px-4 py-2 rounded-lg font-medium ${filterActive === filter
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             {filter.charAt(0).toUpperCase() + filter.slice(1)}
             {filter === 'all' ? ` (${blogs?.length || 0})` : filter === 'active' ? ` (${blogs?.filter(b => b.active).length || 0})` : ` (${blogs?.filter(b => !b.active).length || 0})`}
@@ -90,11 +96,10 @@ export default function BlogsPage() {
                     </div>
                   </div>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  blog.active
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${blog.active
                     ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
-                }`}>
+                  }`}>
                   {blog.active ? 'Active' : 'Inactive'}
                 </span>
               </div>
@@ -120,18 +125,18 @@ export default function BlogsPage() {
                   Edit
                 </button>
                 <button
-  className="flex-1 btn-primary py-2 text-sm"
-  onClick={async () => {
-    try {
-      await nhlApi.deactivateBlog(blog.id, { active: !blog.active })
-      refetch?.()
-    } catch (error) {
-      console.error("Failed to update blog:", error)
-    }
-  }}
->
-  {blog.active ? 'Deactivate' : 'Activate'}
-</button>
+                  className="flex-1 btn-primary py-2 text-sm"
+                  onClick={async () => {
+                    try {
+                      await nhlApi.deactivateBlog(blog.id, { active: !blog.active })
+                      refetch?.()
+                    } catch (error) {
+                      console.error("Failed to update blog:", error)
+                    }
+                  }}
+                >
+                  {blog.active ? 'Deactivate' : 'Activate'}
+                </button>
 
               </div>
             </div>
