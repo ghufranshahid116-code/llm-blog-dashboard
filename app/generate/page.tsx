@@ -23,15 +23,18 @@ export default function GeneratePage() {
 
   const onSubmit = async (data: GenerateFormData) => {
     try {
+      const payload = data.blogs?.length ? { blogs: data.blogs } : {}
       if (isAsync) {
-        await generateMutation.mutateAsync(data.blogs)
+        await generateMutation.mutateAsync(payload)
       } else {
-        await generateSyncMutation.mutateAsync(data.blogs)
+        await generateSyncMutation.mutateAsync(payload)
       }
     } catch (error) {
       console.error('Generation failed:', error)
+      toast.error('Generation failed')
     }
   }
+
 
   return (
     <div className="space-y-6">
