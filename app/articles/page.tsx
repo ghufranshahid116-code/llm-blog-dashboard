@@ -52,7 +52,7 @@ export default function ArticlesPage() {
                         <span>
                           {article.generated_at
                             ? new Date(article.generated_at).toLocaleDateString()
-                            : 'Unknown date'} 
+                            : 'Unknown date'}
                         </span>
                       </div>
                     </div>
