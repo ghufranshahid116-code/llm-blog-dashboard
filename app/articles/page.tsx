@@ -50,9 +50,9 @@ export default function ArticlesPage() {
                       <div className="flex items-center space-x-2 mt-1 text-sm text-gray-500">
                         <Calendar className="w-4 h-4" />
                         <span>
-                          {article.created_at
-                            ? new Date(article.created_at).toLocaleDateString()
-                            : 'Unknown date'}
+                          {article.generated_at
+                            ? new Date(article.generated_at).toLocaleDateString()
+                            : 'Unknown date'} 
                         </span>
                       </div>
                     </div>

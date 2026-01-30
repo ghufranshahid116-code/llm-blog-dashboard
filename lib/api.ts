@@ -40,18 +40,18 @@ export interface TaskList {
 
 // API Methods
 export const nhlApi = {
-  // Generate NHL previews (async)
-  generatePreviews: async (blogs?: string[]) => {
-    const response = await api.post('/generate/nhl', blogs ? { blogs } : null)
-    return response.data
-  },
-
 
   // Generate NHL previews (sync)
-  generatePreviewsSync: async (blogs?: string[]) => {
-    const response = await api.post('/generate/nhl/sync', { blogs })
+  generatePreviews: async (payload?: { blogs?: string[] }) => {
+  const response = await api.post('/generate/nhl', payload || {})
+  return response.data
+},
+
+  generatePreviewsSync: async (payload?: { blogs?: string[] }) => {
+    const response = await api.post('/generate/nhl/sync', payload || {})
     return response.data
-  },
+},
+
 
   // Get task status
   getTaskStatus: async (taskId: string) => {
