@@ -144,9 +144,10 @@ export default function TasksPage() {
                     <td className="py-3 px-4">
                       <div className="text-sm text-gray-700">
                         {task.created_at && task.completed_at
-                          ? formatDistanceToNow(new Date(task.completed_at), {
-                            addSuffix: false,
-                          })
+                          ? formatDistanceToNow(
+                            new Date(task.completed_at + 'Z'),
+                            { addSuffix: false }
+                          )
                           : '-'}
                       </div>
                     </td>
