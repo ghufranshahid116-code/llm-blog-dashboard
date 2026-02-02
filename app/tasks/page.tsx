@@ -25,7 +25,7 @@ export default function TasksPage() {
 
   const filteredTasks = tasksData?.tasks.filter(task => {
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter
-    const matchesSearch = 
+    const matchesSearch =
       task.task_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.task_type.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
@@ -122,7 +122,12 @@ export default function TasksPage() {
                         {task.task_id.substring(0, 12)}...
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {task.created_at && formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
+                        {task.created_at &&
+                          formatDistanceToNow(
+                            new Date(task.created_at + 'Z'),
+                            { addSuffix: true }
+                          )
+                        }
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -140,15 +145,15 @@ export default function TasksPage() {
                       <div className="text-sm text-gray-700">
                         {task.created_at && task.completed_at
                           ? formatDistanceToNow(new Date(task.completed_at), {
-                              addSuffix: false,
-                            })
+                            addSuffix: false,
+                          })
                           : '-'}
                       </div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => {}}
+                          onClick={() => { }}
                           className="p-1.5 hover:bg-gray-100 rounded-lg"
                           title="View Details"
                         >
