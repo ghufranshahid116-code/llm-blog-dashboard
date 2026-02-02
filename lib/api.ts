@@ -2,6 +2,27 @@ import axios from 'axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://statsgeneral.com/api'
 
+// --- Token Management ---
+let accessToken: string | null = null
+
+export const setAuthToken = (token: string | null) => {
+  accessToken = token
+  if (typeof window !== 'undefined') {
+    if (token) localStorage.setItem('token', token)
+    else localStorage.removeItem('token')
+  }
+}
+
+export const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    if (localStorage.getItem('token')) {
+      accessToken = localStorage.getItem('token')
+    }
+    return localStorage.getItem('token')
+  }
+  return null
+}
+// --- Axios Instance ---
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -9,17 +30,25 @@ export const api = axios.create({
   },
 })
 
-// Types based on OpenAPI schema
+// Attach Bearer token automatically
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers['Authorization'] = `Bearer ${accessToken}`
+  }
+  return config
+})
+
+// --- Types ---
 export interface Blog {
   id: number
-  name: string
-  url: string
-  username: string
+  name?: string
+  url?: string
+  username?: string
   active: boolean
-  system_prompt?: string 
-  user_instructions?: string  
-  throttle_delay: number
-  created_at: string
+  system_prompt?: string
+  user_instructions?: string
+  throttle_delay?: number
+  created_at?: string
 }
 
 export interface Task {
@@ -38,66 +67,69 @@ export interface TaskList {
   total: number
 }
 
-// API Methods
+// --- API Wrapper ---
 export const nhlApi = {
+  // --- Auth ---
+  login: async (username: string, password: string) => {
+    const res = await api.post('/auth/login', { username, password })
+    const { access_token } = res.data
+    setAuthToken(access_token)
+    return res.data
+  },
 
-  // Generate NHL previews (sync)
+  // --- NHL Previews ---
   generatePreviews: async (payload?: { blogs?: string[] }) => {
-  const response = await api.post('/generate/nhl', payload || {})
-  return response.data
-},
+    const res = await api.post('/generate/nhl', payload || {})
+    return res.data
+  },
 
   generatePreviewsSync: async (payload?: { blogs?: string[] }) => {
-    const response = await api.post('/generate/nhl/sync', payload || {})
-    return response.data
-},
+    const res = await api.post('/generate/nhl/sync', payload || {})
+    return res.data
+  },
 
-
-  // Get task status
+  // --- Tasks ---
   getTaskStatus: async (taskId: string) => {
-    const response = await api.get(`/tasks/${taskId}`)
-    return response.data
+    const res = await api.get(`/tasks/${taskId}`)
+    return res.data
   },
 
-  // Cancel task
   cancelTask: async (taskId: string) => {
-    const response = await api.delete(`/tasks/${taskId}`)
-    return response.data
+    const res = await api.delete(`/tasks/${taskId}`)
+    return res.data
   },
 
-  // List tasks
   listTasks: async (limit = 100, offset = 0) => {
-    const response = await api.get(`/tasks?limit=${limit}&offset=${offset}`)
-    return response.data
+    const res = await api.get(`/tasks?limit=${limit}&offset=${offset}`)
+    return res.data
   },
 
-  // Get blogs
+  // --- Blogs ---
   getBlogs: async () => {
-    const response = await api.get('/blogs')
-    return response.data
+    const res = await api.get('/blogs')
+    return res.data
   },
 
-  // Get games
+  deactivateBlog: async (blogId: number, data: Partial<Blog>) => {
+    const res = await api.patch(`/blogs/${blogId}`, data)
+    return res.data
+  },
+
+  // --- Games ---
   getGames: async () => {
-    const response = await api.get('/games')
-    return response.data
+    const res = await api.get('/games')
+    return res.data
   },
 
-  // Get articles
+  // --- Articles ---
   getArticles: async (limit = 100, offset = 0) => {
-    const response = await api.get(`/articles?limit=${limit}&offset=${offset}`)
-    return response.data
+    const res = await api.get(`/articles?limit=${limit}&offset=${offset}`)
+    return res.data
   },
 
-  // Health check
+  // --- Health ---
   healthCheck: async () => {
-    const response = await api.get('/health')
-    return response.data
+    const res = await api.get('/health')
+    return res.data
   },
-  // Update a blog partially
-deactivateBlog: async (blogId: number, data: Partial<Blog>) => {
-  const response = await api.patch(`/blogs/${blogId}`, data)
-  return response.data
-}
-
 }

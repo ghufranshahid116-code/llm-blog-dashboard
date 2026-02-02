@@ -1,14 +1,40 @@
 'use client'
 
-import { Bell, Search, User, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { Bell, Search, User, ChevronDown, LogOut } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { setAuthToken } from '../lib/api'
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const router = useRouter()
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = () => {
+    setAuthToken(null) // remove token from localStorage & memory
+    router.push('/login')
+  }
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
+        {/* Search bar */}
         <div className="flex-1 max-w-2xl">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -22,6 +48,7 @@ export default function Header() {
           </div>
         </div>
 
+        {/* Icons and profile */}
         <div className="flex items-center space-x-4">
           <button className="relative p-2 hover:bg-gray-100 rounded-lg">
             <Bell className="w-5 h-5 text-gray-600" />
@@ -30,15 +57,33 @@ export default function Header() {
 
           <div className="h-6 w-px bg-gray-300"></div>
 
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-primary-600" />
-            </div>
-            <div className="hidden md:block">
-              <p className="text-sm font-medium text-gray-900">Admin User</p>
-              <p className="text-xs text-gray-500">Administrator</p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center space-x-3 focus:outline-none"
+            >
+              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-primary-600" />
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-gray-900">Admin User</p>
+                <p className="text-xs text-gray-500">Administrator</p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-gray-500" />
+            </button>
+
+            {/* Dropdown menu */}
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
