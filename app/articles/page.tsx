@@ -51,7 +51,7 @@ export default function ArticlesPage() {
                         <Calendar className="w-4 h-4" />
                         <span>
                           {article.generated_at
-                            ? new Date(article.generated_at).toLocaleDateString()
+                            ? new Date(article.generated_at + 'Z').toLocaleString()
                             : 'Unknown date'}
                         </span>
                       </div>

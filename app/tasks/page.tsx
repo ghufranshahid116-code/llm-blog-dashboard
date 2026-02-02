@@ -6,6 +6,8 @@ import { useTasks, useCancelTask } from '../../hooks/useTasks'
 import StatusBadge from '../../components/StatusBadge'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceStrict } from 'date-fns';
+
 import toast from 'react-hot-toast'
 import { PlayCircle, RefreshCw, AlertCircle } from 'lucide-react'
 
@@ -144,9 +146,9 @@ export default function TasksPage() {
                     <td className="py-3 px-4">
                       <div className="text-sm text-gray-700">
                         {task.created_at && task.completed_at
-                          ? formatDistanceToNow(
-                            new Date(task.completed_at + 'Z'),
-                            { addSuffix: false }
+                          ? formatDistanceStrict(
+                            new Date(task.created_at + 'Z'),
+                            new Date(task.completed_at + 'Z')
                           )
                           : '-'}
                       </div>
