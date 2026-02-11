@@ -75,21 +75,7 @@ export default function GeneratePage() {
                 </div>
                 <p className="text-xs mt-1 opacity-75">Background task</p>
               </button>
-              <button
-                type="button"
-                onClick={() => setIsAsync(false)}
-                className={`flex-1 py-3 px-4 rounded-lg text-center font-medium transition-colors ${
-                  !isAsync
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <PlayCircle className="w-4 h-4" />
-                  <span>Sync Generation</span>
-                </div>
-                <p className="text-xs mt-1 opacity-75">Immediate processing</p>
-              </button>
+            
             </div>
 
             {/* Form */}

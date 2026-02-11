@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { nhlApi } from "../../lib/api";
+import { sportsApi } from "../../lib/api";
 
 // Define the HealthResponse type based on the new API format
 export type HealthResponse = {
@@ -27,7 +27,7 @@ export default function HealthPage() {
     const fetchHealthData = async () => {
       try {
         // Fetch the health data from API
-        const data: HealthResponse = await nhlApi.healthCheck(); // nhlApi.healthCheck should already return parsed JSON
+        const data: HealthResponse = await sportsApi.healthCheck(); // nhlApi.healthCheck should already return parsed JSON
         setHealthData(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
