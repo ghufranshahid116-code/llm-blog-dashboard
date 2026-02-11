@@ -7,7 +7,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import { formatDistanceToNow } from 'date-fns'
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_USER_INSTRUCTIONS } from './BlogForm'
 import BlogForm from './BlogForm'
-import { nhlApi } from "../../lib/api";
+import { sportsApi } from "../../lib/api"
 
 export default function BlogsPage() {
   const { data: blogs, isLoading, refetch } = useBlogs()
@@ -54,7 +54,6 @@ export default function BlogsPage() {
             setShowForm(false)
             setEditingBlog(null)
           }}
-
         />
       )}
 
@@ -70,7 +69,11 @@ export default function BlogsPage() {
               }`}
           >
             {filter.charAt(0).toUpperCase() + filter.slice(1)}
-            {filter === 'all' ? ` (${blogs?.length || 0})` : filter === 'active' ? ` (${blogs?.filter(b => b.active).length || 0})` : ` (${blogs?.filter(b => !b.active).length || 0})`}
+            {filter === 'all'
+              ? ` (${blogs?.length || 0})`
+              : filter === 'active'
+              ? ` (${blogs?.filter(b => b.active).length || 0})`
+              : ` (${blogs?.filter(b => !b.active).length || 0})`}
           </button>
         ))}
       </div>
@@ -128,7 +131,8 @@ export default function BlogsPage() {
                   className="flex-1 btn-primary py-2 text-sm"
                   onClick={async () => {
                     try {
-                      await nhlApi.deactivateBlog(blog.id, { active: !blog.active })
+                      // Use multi-sport API for activate/deactivate
+                      await sportsApi.deactivateBlog(blog.id, { active: !blog.active })
                       refetch?.()
                     } catch (error) {
                       console.error("Failed to update blog:", error)
@@ -137,7 +141,6 @@ export default function BlogsPage() {
                 >
                   {blog.active ? 'Deactivate' : 'Activate'}
                 </button>
-
               </div>
             </div>
           ))}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { nhlApi } from '../../lib/api'
+import { sportsApi } from '../../lib/api' // ✅ use sportsApi now
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,11 +16,20 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await nhlApi.login(username, password)
-      router.push('/') // redirect after login
-      window.location.href = '/' 
+      const res = await sportsApi.login(username, password) // ✅ updated
+      if (res?.access_token) { // check if token exists
+        router.push('/') // redirect after login
+        window.location.href = '/' 
+      } else {
+        setError('Login failed: invalid response')
+      }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed')
+      setError(
+        err.response?.data?.detail?.[0]?.msg ||
+        err.response?.data?.message ||
+        err.message ||
+        'Login failed'
+      )
     } finally {
       setLoading(false)
     }

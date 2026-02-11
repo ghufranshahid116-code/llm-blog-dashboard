@@ -3,51 +3,65 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { PlayCircle, RefreshCw, AlertCircle } from 'lucide-react'
-import { generatePreviews, useGeneratePreviewsSync } from '../../hooks/useTasks'
+import { sportsApi } from '../../lib/api'
 import { useBlogs } from '../../hooks/useBlogs'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import toast from 'react-hot-toast'
 
 interface GenerateFormData {
   blogs: string[]
+  sport?: string
 }
+
+const AVAILABLE_SPORTS = ['NHL', 'NBA', 'NCAAB'] // add more sports here
 
 export default function GeneratePage() {
   const [isAsync, setIsAsync] = useState(true)
-  const { register, handleSubmit, watch } = useForm<GenerateFormData>()
+  const { register, handleSubmit, watch } = useForm<GenerateFormData>({
+    defaultValues: { sport: 'NHL' },
+  })
   const { data: blogs, isLoading: blogsLoading } = useBlogs()
-  const generateMutation = generatePreviews()
-  const generateSyncMutation = useGeneratePreviewsSync()
 
   const selectedBlogs = watch('blogs') || []
+  const selectedSport = watch('sport') || 'NHL'
 
   const onSubmit = async (data: GenerateFormData) => {
     try {
-      const payload = data.blogs?.length ? { blogs: data.blogs } : {}
-      if (isAsync) {
-        await generateMutation.mutateAsync(payload)
-      } else {
-        await generateSyncMutation.mutateAsync(payload)
+      // Build the payload as a single object
+      const payload = {
+        sport: data.sport || 'NHL',
+        blogs: data.blogs?.length ? data.blogs : undefined,
       }
+
+      if (isAsync) {
+        await sportsApi.generatePreviews(payload)
+      } else {
+        await sportsApi.generatePreviewsSync(payload)
+      }
+
+      toast.success(`${payload.sport} previews generation started!`)
     } catch (error) {
       console.error('Generation failed:', error)
       toast.error('Generation failed')
     }
   }
 
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Generate NHL Previews</h1>
-        <p className="text-gray-600">Create AI-powered previews for upcoming NHL games</p>
+        <h1 className="text-2xl font-bold text-gray-900">Generate Previews</h1>
+        <p className="text-gray-600">
+          Create AI-powered previews for upcoming games
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <div className="card">
+            {/* Async / Sync Buttons */}
             <div className="flex space-x-4 mb-6">
               <button
+                type="button"
                 onClick={() => setIsAsync(true)}
                 className={`flex-1 py-3 px-4 rounded-lg text-center font-medium transition-colors ${
                   isAsync
@@ -62,6 +76,7 @@ export default function GeneratePage() {
                 <p className="text-xs mt-1 opacity-75">Background task</p>
               </button>
               <button
+                type="button"
                 onClick={() => setIsAsync(false)}
                 className={`flex-1 py-3 px-4 rounded-lg text-center font-medium transition-colors ${
                   !isAsync
@@ -77,7 +92,26 @@ export default function GeneratePage() {
               </button>
             </div>
 
+            {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Sport Selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Sport
+                </label>
+                <select
+                  {...register('sport')}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                >
+                  {AVAILABLE_SPORTS.map((sport) => (
+                    <option key={sport} value={sport}>
+                      {sport}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Blog Selector */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Blogs
@@ -107,11 +141,13 @@ export default function GeneratePage() {
                           <span className="text-sm font-medium text-gray-900">{blog.name}</span>
                           <p className="text-xs text-gray-500 truncate">{blog.url}</p>
                         </div>
-                        <span className={`ml-auto px-2 py-1 text-xs rounded-full ${
-                          blog.active 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span
+                          className={`ml-auto px-2 py-1 text-xs rounded-full ${
+                            blog.active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
                           {blog.active ? 'Active' : 'Inactive'}
                         </span>
                       </label>
@@ -120,10 +156,11 @@ export default function GeneratePage() {
                 )}
 
                 <div className="mt-2 text-sm text-gray-500">
-                  Selected: {selectedBlogs.length} of {blogs?.length || 0} blogs
+                  Selected: {selectedBlogs.length} of {blogs?.length ?? 0} blogs
                 </div>
               </div>
 
+              {/* Mode Info */}
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="flex items-start">
                   <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
@@ -140,70 +177,34 @@ export default function GeneratePage() {
                 </div>
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
-                disabled={generateMutation.isPending || generateSyncMutation.isPending}
                 className="w-full btn-primary py-3 flex items-center justify-center space-x-2"
               >
-                {(generateMutation.isPending || generateSyncMutation.isPending) ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    <span>Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <PlayCircle className="w-5 h-5" />
-                    <span>{isAsync ? 'Start Async Generation' : 'Start Sync Generation'}</span>
-                  </>
-                )}
+                <PlayCircle className="w-5 h-5" />
+                <span>{isAsync ? 'Start Async Generation' : 'Start Sync Generation'}</span>
               </button>
             </form>
           </div>
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-6">
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Generation Details</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Mode</span>
-                <span className="font-medium">
-                  {isAsync ? 'Asynchronous' : 'Synchronous'}
-                </span>
+                <span className="font-medium">{isAsync ? 'Asynchronous' : 'Synchronous'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Selected Blogs</span>
                 <span className="font-medium">{selectedBlogs.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Estimated Time</span>
-                <span className="font-medium">
-                  {isAsync ? 'Varies' : '2-5 minutes'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">NHL Preview</p>
-                  <p className="text-xs text-gray-600">2 minutes ago</p>
-                </div>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Completed
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Game Analysis</p>
-                  <p className="text-xs text-gray-600">15 minutes ago</p>
-                </div>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  Running
-                </span>
+                <span className="text-gray-600">Sport</span>
+                <span className="font-medium">{selectedSport}</span>
               </div>
             </div>
           </div>

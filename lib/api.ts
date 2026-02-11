@@ -1,3 +1,4 @@
+// File: lib/api.ts
 import axios from 'axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://statsgeneral.com/api'
@@ -22,6 +23,7 @@ export const getAuthToken = () => {
   }
   return null
 }
+
 // --- Axios Instance ---
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,6 +46,7 @@ export interface Blog {
   name?: string
   url?: string
   username?: string
+  sport?: string
   active: boolean
   system_prompt?: string
   user_instructions?: string
@@ -67,8 +70,8 @@ export interface TaskList {
   total: number
 }
 
-// --- API Wrapper ---
-export const nhlApi = {
+// --- Multi-Sport API Wrapper ---
+export const sportsApi = {
   // --- Auth ---
   login: async (username: string, password: string) => {
     const res = await api.post('/auth/login', { username, password })
@@ -77,14 +80,14 @@ export const nhlApi = {
     return res.data
   },
 
-  // --- NHL Previews ---
-  generatePreviews: async (payload?: { blogs?: string[] }) => {
-    const res = await api.post('/generate/nhl', payload || {})
+  // --- Generate Previews ---
+  generatePreviews: async (data: { sport: string; blogs?: string[] }) => {
+    const res = await api.post('/generate/previews', data)
     return res.data
   },
 
-  generatePreviewsSync: async (payload?: { blogs?: string[] }) => {
-    const res = await api.post('/generate/nhl/sync', payload || {})
+  generatePreviewsSync: async (data: { sport: string; blogs?: string[] }) => {
+    const res = await api.post('/generate/previews/sync', data)
     return res.data
   },
 
