@@ -52,6 +52,23 @@ export interface Blog {
   user_instructions?: string
   throttle_delay?: number
   created_at?: string
+  sports?: Sport[]               // add this
+  sport_prompts?: SportPrompt[]  // add this
+}
+
+export interface Sport {
+  id: number
+  name: string
+  title: string
+}
+
+export interface SportPrompt {
+  id?: number
+  blog_id: number
+  sport_id: number
+  sport_name?: string
+  system_prompt: string | null
+  user_instructions: string | null
 }
 
 export interface Task {
@@ -108,8 +125,8 @@ export const sportsApi = {
   },
 
   // --- Blogs ---
-  getBlogs: async () => {
-    const res = await api.get('/blogs')
+  getBlogs: async (params?: { include_prompts?: boolean }) => {
+    const res = await api.get('/blogs', { params })
     return res.data
   },
 
@@ -133,6 +150,27 @@ export const sportsApi = {
   // --- Health ---
   healthCheck: async () => {
     const res = await api.get('/health')
+    return res.data
+  },
+}
+
+// --- Sport Prompts API (EXPORT THIS) ---
+export const sportPromptsApi = {
+  // Get all prompts for a blog
+  getByBlog: async (blogId: number) => {
+    const res = await api.get(`/blogs/${blogId}/sport-prompts`)
+    return res.data
+  },
+
+  // Update a specific prompt (create or update)
+  update: async (blogId: number, sportId: number, data: Partial<SportPrompt>) => {
+    const res = await api.put(`/blogs/${blogId}/sport-prompts/${sportId}`, data)
+    return res.data
+  },
+
+  // Bulk update for a blog
+  updateMany: async (blogId: number, prompts: SportPrompt[]) => {
+    const res = await api.put(`/blogs/${blogId}/sport-prompts`, prompts)
     return res.data
   },
 }

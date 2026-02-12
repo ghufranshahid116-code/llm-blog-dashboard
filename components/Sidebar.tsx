@@ -22,6 +22,7 @@ const navigation = [
   { name: 'Games', href: '/games', icon: Gamepad2 },
   { name: 'Blogs', href: '/blogs', icon: FileText },
   { name: 'Health', href: '/health', icon: Heart },
+  { name: 'Sport Prompts', href: '/sport-prompts', icon: Settings },
 ]
 
 export default function Sidebar() {

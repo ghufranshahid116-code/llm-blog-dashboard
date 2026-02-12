@@ -1,10 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { sportsApi, Blog } from '../lib/api' // use sportsApi now
 
-export const useBlogs = () => {
+export const useBlogs = (options?: { includePrompts?: boolean }) => {
   return useQuery<Blog[]>({
-    queryKey: ['blogs'],
-    queryFn: sportsApi.getBlogs,
+    queryKey: ['blogs', options],
+    queryFn: async () => {
+      const params: Record<string, any> = {}
+      if (options?.includePrompts) {
+        params.include_prompts = true
+      }
+      return sportsApi.getBlogs(params)
+    },
   })
 }
 
