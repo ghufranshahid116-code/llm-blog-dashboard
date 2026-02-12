@@ -38,18 +38,18 @@ export default function GamesPage() {
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
                   <span>
-                    {game.start_time
-                      ? new Date(game.start_time).toLocaleString()
+                    {game.created_at
+                      ? new Date(game.created_at).toLocaleString()
                       : 'TBD'}
                   </span>
                 </div>
 
                 <div>
-                  Venue: {game.venue || 'Unknown'}
+                  Sport: {game.sport_key || 'Unknown'}
                 </div>
 
                 <div>
-                  Status: <span className="font-medium">{game.status}</span>
+                  Title: <span className="font-medium">{game.sport_title}</span>
                 </div>
               </div>
             </div>
