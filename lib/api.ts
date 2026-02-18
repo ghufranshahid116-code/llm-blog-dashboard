@@ -87,6 +87,31 @@ export interface TaskList {
   total: number
 }
 
+export interface BulkSyncRequest {
+  blog_id: number;
+  sport_id: number;
+  generate_missing: boolean;
+  regenerate_existing: boolean;
+  status?: string;
+  older_than_days?: number;
+  limit?: number;
+  skip_throttle?: boolean;
+}
+
+export interface TaskResponse {
+  task_id: string;
+  status: string;
+  monitor_url: string;
+}
+
+export interface TaskStatus {
+  task_id: string;
+  status: string;
+  result?: any;
+  error?: string;
+}
+
+
 // --- Multi-Sport API Wrapper ---
 export const sportsApi = {
   // --- Auth ---
@@ -174,3 +199,16 @@ export const sportPromptsApi = {
     return res.data
   },
 }
+
+
+export const re = {
+  getBlogs: () => api.get<Blog[]>('/blogs'),
+
+  getSports: () => api.get<Sport[]>('/sports'),
+
+  startBulkSync: (data: BulkSyncRequest) =>
+    api.post<TaskResponse>('/articles/bulk-sync', data),
+
+  getTask: (taskId: string) =>
+    api.get<TaskStatus>(`/tasks/${taskId}`),
+};
