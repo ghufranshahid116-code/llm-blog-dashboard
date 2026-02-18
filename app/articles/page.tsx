@@ -5,10 +5,12 @@ import { FileText, Calendar, Edit, Save, X, Search } from 'lucide-react'
 import { useArticles } from '../../hooks/useBlogs'
 import LoadingSpinner from '../../components/LoadingSpinner'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://statsgeneral.com/api'
+import BulkSyncModal from '../../components/BulkSyncModal'
 
 
 export default function ArticlesPage() {
   const [page, setPage] = useState(0)
+  const [showBulkModal, setShowBulkModal] = useState(false)
 
   const [expandedArticles, setExpandedArticles] = useState<Record<number, boolean>>(
     {}
@@ -117,11 +119,19 @@ export default function ArticlesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
-        <p className="text-gray-600">Generated sports preview articles</p>
-      </div>
+      <div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
+    <p className="text-gray-600">Generated sports preview articles</p>
+  </div>
+  <button
+    onClick={() => setShowBulkModal(true)}
+    className="btn-primary flex items-center gap-2"
+  >
+    <FileText className="w-4 h-4" />
+    Bulk Sync
+  </button>
+</div>
 
       {/* Loading */}
       {isLoading && (
@@ -316,6 +326,10 @@ export default function ArticlesPage() {
           </div>
         </div>
       )}
+      <BulkSyncModal
+  isOpen={showBulkModal}
+  onClose={() => setShowBulkModal(false)}
+/>
     </div>
   )
 }
