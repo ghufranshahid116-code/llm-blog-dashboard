@@ -120,18 +120,17 @@ export default function ArticlesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-  <div>
-    <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
-    <p className="text-gray-600">Generated sports preview articles</p>
-  </div>
-  <button
-    onClick={() => setShowBulkModal(true)}
-    className="btn-primary flex items-center gap-2"
-  >
-    <FileText className="w-4 h-4" />
-    Bulk Sync
-  </button>
-</div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
+          <p className="text-gray-600">Generated sports preview articles</p>
+        </div>
+        <button
+          onClick={() => setShowBulkModal(true)}
+          className="btn-primary flex items-center gap-2"
+        >
+          <FileText className="w-4 h-4" /> Bulk Sync
+        </button>
+      </div>
 
       {/* Loading */}
       {isLoading && (
@@ -200,6 +199,18 @@ export default function ArticlesPage() {
 
                 {/* Content */}
                 <div className="mt-3 text-sm">
+                  {/* 🔹 IMAGE */}
+                  {article.featured_image && (
+                    <div className="mb-3">
+                      <img
+                        src={article.featured_image}
+                        alt={article.title || 'Article image'}
+                        // className="w-full rounded-md object-cover max-h-64"
+                        className="w-full h-auto rounded-md object-contain"
+
+                      />
+                    </div>
+                  )}
 
                   {isEditing ? (
                     <>
