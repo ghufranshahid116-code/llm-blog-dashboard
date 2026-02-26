@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { PlayCircle, RefreshCw, AlertCircle } from 'lucide-react'
+import { PlayCircle, RefreshCw, AlertCircle, Calendar } from 'lucide-react'
 import { sportsApi } from '../../lib/api'
 import { useBlogs } from '../../hooks/useBlogs'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -17,6 +17,11 @@ const AVAILABLE_SPORTS = ['NHL', 'NBA', 'NCAAB'] // add more sports here
 
 export default function GeneratePage() {
   const [isAsync, setIsAsync] = useState(true)
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  })
+
   const { register, handleSubmit, watch } = useForm<GenerateFormData>({
     defaultValues: { sport: 'NHL' },
   })
@@ -27,19 +32,24 @@ export default function GeneratePage() {
 
   const onSubmit = async (data: GenerateFormData) => {
     try {
-      // Build the payload as a single object
+      // Construct UTC range from selectedDate
+      const from_date = `${selectedDate}`
+      const to_date   = `${selectedDate}`
+
       const payload = {
         sport: data.sport || 'NHL',
         blogs: data.blogs?.length ? data.blogs : undefined,
+        from_date,
+        to_date,
       }
 
       if (isAsync) {
         await sportsApi.generatePreviews(payload)
+        toast.success(`${payload.sport} previews generation started for ${selectedDate}!`)
       } else {
         await sportsApi.generatePreviewsSync(payload)
+        toast.success(`${payload.sport} previews generated for ${selectedDate}!`)
       }
-
-      toast.success(`${payload.sport} previews generation started!`)
     } catch (error) {
       console.error('Generation failed:', error)
       toast.error('Generation failed')
@@ -51,7 +61,7 @@ export default function GeneratePage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Generate Previews</h1>
         <p className="text-gray-600">
-          Create AI-powered previews for upcoming games
+          Create AI-powered previews for upcoming games on a selected day
         </p>
       </div>
 
@@ -75,7 +85,7 @@ export default function GeneratePage() {
                 </div>
                 <p className="text-xs mt-1 opacity-75">Background task</p>
               </button>
-            
+              {/* If you have a sync button, add it here */}
             </div>
 
             {/* Form */}
@@ -95,6 +105,26 @@ export default function GeneratePage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Date Picker */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Game Date
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Games starting on this local date will be fetched (converted to UTC range).
+                </p>
               </div>
 
               {/* Blog Selector */}
@@ -191,6 +221,10 @@ export default function GeneratePage() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Sport</span>
                 <span className="font-medium">{selectedSport}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Date</span>
+                <span className="font-medium">{selectedDate}</span>
               </div>
             </div>
           </div>
