@@ -107,7 +107,7 @@ export default function BlogsPage() {
                 </span>
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <pre className="text-xs text-gray-700 p-2 bg-gray-50 rounded overflow-x-auto">
                   {blog.system_prompt || DEFAULT_SYSTEM_PROMPT}
                 </pre>
@@ -115,7 +115,7 @@ export default function BlogsPage() {
                 <pre className="text-xs text-gray-700 p-2 bg-gray-50 rounded overflow-x-auto">
                   {blog.user_instructions || DEFAULT_USER_INSTRUCTIONS}
                 </pre>
-              </div>
+              </div> */}
 
               <div className="flex space-x-2 pt-4 border-t border-gray-200">
                 <button

@@ -46,10 +46,11 @@ export interface Blog {
   name?: string
   url?: string
   username?: string
+  password?: string
   sport?: string
   active: boolean
-  system_prompt?: string
-  user_instructions?: string
+  // system_prompt?: string
+  // user_instructions?: string
   throttle_delay?: number
   created_at?: string
   sports?: Sport[]               // add this
@@ -60,6 +61,7 @@ export interface Sport {
   id: number
   name: string
   title: string
+  odds_key: string
 }
 
 export interface SportPrompt {
@@ -177,6 +179,23 @@ export const sportsApi = {
     const res = await api.get('/health')
     return res.data
   },
+  getSports: async () => {
+    const res = await api.get('/sports')
+    return res.data
+  },
+  createSport: async (data: any) => {
+    const res = await api.post('/sports', data)
+    return res.data
+  },
+  updateSport: async (id: number, data: any) => {
+    const res = await api.put(`/sports/${id}`, data)
+    return res.data
+  },
+  deleteSport: async (id: number) => {
+    const res = await api.delete(`/sports/${id}`)
+    return res.data
+  },
+  
 }
 
 // --- Sport Prompts API (EXPORT THIS) ---
