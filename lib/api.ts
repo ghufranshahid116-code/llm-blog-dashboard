@@ -55,6 +55,7 @@ export interface Blog {
   created_at?: string
   sports?: Sport[]               // add this
   sport_prompts?: SportPrompt[]  // add this
+  template_image_url?: string | null  // add this
 }
 
 export interface Sport {
@@ -194,6 +195,15 @@ export const sportsApi = {
   deleteSport: async (id: number) => {
     const res = await api.delete(`/sports/${id}`)
     return res.data
+  },
+  uploadBlogTemplate: async (blogId: number, file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await api.post(`/blogs/${blogId}/template-image`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+
   },
   
 }

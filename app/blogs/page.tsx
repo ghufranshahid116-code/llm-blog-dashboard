@@ -64,16 +64,16 @@ export default function BlogsPage() {
             key={filter}
             onClick={() => setFilterActive(filter)}
             className={`px-4 py-2 rounded-lg font-medium ${filterActive === filter
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             {filter.charAt(0).toUpperCase() + filter.slice(1)}
             {filter === 'all'
               ? ` (${blogs?.length || 0})`
               : filter === 'active'
-              ? ` (${blogs?.filter(b => b.active).length || 0})`
-              : ` (${blogs?.filter(b => !b.active).length || 0})`}
+                ? ` (${blogs?.filter(b => b.active).length || 0})`
+                : ` (${blogs?.filter(b => !b.active).length || 0})`}
           </button>
         ))}
       </div>
@@ -100,12 +100,47 @@ export default function BlogsPage() {
                   </div>
                 </div>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${blog.active
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-800'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
                   }`}>
                   {blog.active ? 'Active' : 'Inactive'}
                 </span>
               </div>
+
+
+              <div className="mb-3 aspect-video w-full overflow-hidden rounded border bg-gray-100">
+                {blog.template_image_url ? (
+                  <img
+                    src={blog.template_image_url}
+                    alt={`${blog.name} template`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                    No image
+                  </div>
+                )}
+              </div>
+
+
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Covered Sports</h4>
+                <div className="space-y-1">
+                  {blog.sports?.map((sport: any) => (
+                    <label key={sport.id} className="flex items-center space-x-2 py-1">
+                      <input
+                        type="checkbox"
+                        checked={blog.sports?.some((s: any) => s.name === sport.name)}
+                        readOnly
+                        className="rounded"
+                      />
+                      <span className="text-sm">{sport.title || sport.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+
 
               {/* <div className="space-y-2">
                 <pre className="text-xs text-gray-700 p-2 bg-gray-50 rounded overflow-x-auto">

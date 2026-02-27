@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Blog, Sport } from "../../lib/api";
-import { api } from "../../lib/api";
+import { api, sportsApi } from "../../lib/api";
 
 interface BlogFormProps {
   blog?: Blog
@@ -27,10 +27,15 @@ export default function BlogForm({ blog, onSave, onClose }: BlogFormProps) {
   //   blog?.user_instructions || DEFAULT_USER_INSTRUCTIONS
   // )
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   // Sports state
   const [sportsList, setSportsList] = useState<Sport[]>([])
   const [selectedSports, setSelectedSports] = useState<string[]>([])
+
+  // Template image
+  const [templateFile, setTemplateFile] = useState<File | null>(null)
+  const [templatePreview, setTemplatePreview] = useState<string | null>(blog?.template_image_url || null)
 
   // Fetch all sports on mount
   useEffect(() => {
@@ -54,32 +59,93 @@ export default function BlogForm({ blog, onSave, onClose }: BlogFormProps) {
     }
   }, [blog])
 
+  // Clean up preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (templatePreview && templatePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(templatePreview)
+      }
+    }
+  }, [templatePreview])
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setTemplateFile(file)
+      const previewUrl = URL.createObjectURL(file)
+      setTemplatePreview(previewUrl)
+    }
+  }
+
+  const handleRemoveTemplate = () => {
+    setTemplateFile(null)
+    setTemplatePreview(null)
+  }
+
   const handleSubmit = async () => {
     setSaving(true)
-    const payload: any = {
-      name,
-      url,
-      username,
-      password,
-      throttle_delay: throttle,
-      active,
-      // system_prompt: systemPrompt,
-      // user_instructions: userInstructions,
-      sports: selectedSports, // send array of sport names
-    }
-
     try {
-      let res
-      if (blog) {
-        res = await api.put(`/blogs/${blog.id}`, payload)
+      let finalBlog: Blog
+
+      if (templateFile && blog) {
+        setUploading(true)
+        const uploadRes = await sportsApi.uploadBlogTemplate(blog.id, templateFile)
+        const templateUrl = uploadRes.template_image_url
+        setUploading(false)
+        const payload: any = {
+          name,
+          url,
+          username,
+          throttle_delay: throttle,
+          active,
+          sports: selectedSports,
+          template_image_url: templateUrl,
+        }
+        const res = await api.put(`/blogs/${blog.id}`, payload)
+        finalBlog = res.data
+      } else if (templateFile && !blog) {
+        const payload: any = {
+          name,
+          url,
+          username,
+          throttle_delay: throttle,
+          active,
+          password,
+          sports: selectedSports,
+        }
+        const createRes = await api.post('/blogs', payload)
+        finalBlog = createRes.data
+        setUploading(true)
+        await sportsApi.uploadBlogTemplate(finalBlog.id, templateFile)
+        setUploading(false)
+        const refreshed = await api.get(`/blogs/${finalBlog.id}`)
+        finalBlog = refreshed.data
       } else {
-        res = await api.post('/blogs', payload)
+        const payload: any = {
+          name,
+          url,
+          username,
+          throttle_delay: throttle,
+          active,
+          password,
+          sports: selectedSports,
+          template_image_url: templatePreview && !templatePreview.startsWith('blob:') ? templatePreview : null,
+        }
+        if (blog) {
+          const res = await api.put(`/blogs/${blog.id}`, payload)
+          finalBlog = res.data
+        } else {
+          const res = await api.post('/blogs', payload)
+          finalBlog = res.data
+        }
       }
-      onSave(res.data)
+
+      onSave(finalBlog)
     } catch (error) {
       console.error('Save failed', error)
     } finally {
       setSaving(false)
+      setUploading(false)
     }
   }
 
@@ -177,20 +243,53 @@ export default function BlogForm({ blog, onSave, onClose }: BlogFormProps) {
             <label htmlFor="active" className="text-sm">Active</label>
           </div>
 
+          {/* Template image upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Template Image (for generated previews)
+            </label>
+            {templatePreview && (
+              <div className="mb-2 relative">
+                <img
+                  src={templatePreview}
+                  alt="Template preview"
+                  className="max-h-32 rounded border"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveTemplate}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/png, image/jpeg"
+              onChange={handleFileChange}
+              className="w-full border px-3 py-2 rounded"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Recommended size: 1200×630 pixels. PNG or JPEG.
+            </p>
+          </div>
+
+          {/* Buttons */}
           <div className="flex justify-end space-x-2 mt-4">
             <button
               className="btn-secondary"
               onClick={onClose}
-              disabled={saving}
+              disabled={saving || uploading}
             >
               Cancel
             </button>
             <button
               className="btn-primary"
               onClick={handleSubmit}
-              disabled={saving}
+              disabled={saving || uploading}
             >
-              {saving ? 'Saving...' : 'Save'}
+              {uploading ? 'Uploading...' : saving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
