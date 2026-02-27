@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { PlayCircle, RefreshCw, AlertCircle, Calendar } from 'lucide-react'
 import { sportsApi } from '../../lib/api'
@@ -10,10 +10,30 @@ import toast from 'react-hot-toast'
 
 interface GenerateFormData {
   blogs: string[]
-  sport?: string
+  sport: string
 }
 
-const AVAILABLE_SPORTS = ['NHL', 'NBA', 'NCAAB'] // add more sports here
+const useSports = () => {
+  const [sports, setSports] = useState<{ name: string; title: string }[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const data = await sportsApi.getSports()
+        setSports(data || [])
+      } catch (error) {
+        console.error('Failed to fetch sports', error)
+        setSports([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSports()
+  }, [])
+
+  return { sports, loading }
+}
 
 export default function GeneratePage() {
   const [isAsync, setIsAsync] = useState(true)
@@ -22,38 +42,50 @@ export default function GeneratePage() {
     return today.toISOString().split('T')[0]
   })
 
-  const { register, handleSubmit, watch } = useForm<GenerateFormData>({
-    defaultValues: { sport: 'NHL' },
+  const { register, handleSubmit, watch, setValue } = useForm<GenerateFormData>({
+    defaultValues: { sport: '' },
   })
   const { data: blogs, isLoading: blogsLoading } = useBlogs()
+  const { sports, loading: sportsLoading } = useSports()
+
+  // Set default sport once sports are loaded
+  useEffect(() => {
+    if (sports.length > 0 && !watch('sport')) {
+      setValue('sport', sports[0].name)
+    }
+  }, [sports, setValue, watch])
 
   const selectedBlogs = watch('blogs') || []
-  const selectedSport = watch('sport') || 'NHL'
+  const selectedSport = watch('sport') || (sports[0]?.name || '')
 
   const onSubmit = async (data: GenerateFormData) => {
     try {
-      // Construct UTC range from selectedDate
-      const from_date = `${selectedDate}`
-      const to_date   = `${selectedDate}`
-
       const payload = {
-        sport: data.sport || 'NHL',
+        sport: data.sport,
         blogs: data.blogs?.length ? data.blogs : undefined,
-        from_date,
-        to_date,
+        from_date: selectedDate,
+        to_date: selectedDate,
       }
 
       if (isAsync) {
         await sportsApi.generatePreviews(payload)
-        toast.success(`${payload.sport} previews generation started for ${selectedDate}!`)
+        toast.success(`${data.sport.toUpperCase()} previews generation started for ${selectedDate}!`)
       } else {
         await sportsApi.generatePreviewsSync(payload)
-        toast.success(`${payload.sport} previews generated for ${selectedDate}!`)
+        toast.success(`${data.sport.toUpperCase()} previews generated for ${selectedDate}!`)
       }
     } catch (error) {
       console.error('Generation failed:', error)
       toast.error('Generation failed')
     }
+  }
+
+  if (sportsLoading || blogsLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
   }
 
   return (
@@ -85,7 +117,6 @@ export default function GeneratePage() {
                 </div>
                 <p className="text-xs mt-1 opacity-75">Background task</p>
               </button>
-              {/* If you have a sync button, add it here */}
             </div>
 
             {/* Form */}
@@ -99,9 +130,9 @@ export default function GeneratePage() {
                   {...register('sport')}
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 >
-                  {AVAILABLE_SPORTS.map((sport) => (
-                    <option key={sport} value={sport}>
-                      {sport}
+                  {sports.map((sport) => (
+                    <option key={sport.name} value={sport.name}>
+                      {sport.title || sport.name.toUpperCase()}
                     </option>
                   ))}
                 </select>
@@ -136,40 +167,34 @@ export default function GeneratePage() {
                   Choose which blogs to generate previews for (leave empty for all)
                 </p>
 
-                {blogsLoading ? (
-                  <div className="flex justify-center py-4">
-                    <LoadingSpinner size="md" />
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
-                    {blogs?.map((blog) => (
-                      <label
-                        key={blog.id}
-                        className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                <div className="space-y-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+                  {blogs?.map((blog) => (
+                    <label
+                      key={blog.id}
+                      className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        value={blog.name}
+                        {...register('blogs')}
+                        className="h-4 w-4 text-primary-600 rounded focus:ring-primary-500"
+                      />
+                      <div className="ml-3">
+                        <span className="text-sm font-medium text-gray-900">{blog.name}</span>
+                        <p className="text-xs text-gray-500 truncate">{blog.url}</p>
+                      </div>
+                      <span
+                        className={`ml-auto px-2 py-1 text-xs rounded-full ${
+                          blog.active
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          value={blog.name}
-                          {...register('blogs')}
-                          className="h-4 w-4 text-primary-600 rounded focus:ring-primary-500"
-                        />
-                        <div className="ml-3">
-                          <span className="text-sm font-medium text-gray-900">{blog.name}</span>
-                          <p className="text-xs text-gray-500 truncate">{blog.url}</p>
-                        </div>
-                        <span
-                          className={`ml-auto px-2 py-1 text-xs rounded-full ${
-                            blog.active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {blog.active ? 'Active' : 'Inactive'}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                        {blog.active ? 'Active' : 'Inactive'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
 
                 <div className="mt-2 text-sm text-gray-500">
                   Selected: {selectedBlogs.length} of {blogs?.length ?? 0} blogs
@@ -220,7 +245,7 @@ export default function GeneratePage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Sport</span>
-                <span className="font-medium">{selectedSport}</span>
+                <span className="font-medium">{selectedSport.toUpperCase()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Date</span>
