@@ -37,10 +37,14 @@ const useSports = () => {
 
 export default function GeneratePage() {
   const [isAsync, setIsAsync] = useState(true)
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  })
+
+  // --- DATE RANGE STATES ---
+  const today = new Date()
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+
+  const [fromDate, setFromDate] = useState(today.toISOString().split('T')[0])
+  const [toDate, setToDate] = useState(tomorrow.toISOString().split('T')[0])
 
   const { register, handleSubmit, watch, setValue } = useForm<GenerateFormData>({
     defaultValues: { sport: '' },
@@ -63,16 +67,16 @@ export default function GeneratePage() {
       const payload = {
         sport: data.sport,
         blogs: data.blogs?.length ? data.blogs : undefined,
-        from_date: selectedDate,
-        to_date: selectedDate,
+        from_date: fromDate,
+        to_date: toDate,
       }
 
       if (isAsync) {
         await sportsApi.generatePreviews(payload)
-        toast.success(`${data.sport.toUpperCase()} previews generation started for ${selectedDate}!`)
+        toast.success(`${data.sport.toUpperCase()} previews generation started for ${fromDate} → ${toDate}!`)
       } else {
         await sportsApi.generatePreviewsSync(payload)
-        toast.success(`${data.sport.toUpperCase()} previews generated for ${selectedDate}!`)
+        toast.success(`${data.sport.toUpperCase()} previews generated for ${fromDate} → ${toDate}!`)
       }
     } catch (error) {
       console.error('Generation failed:', error)
@@ -93,7 +97,7 @@ export default function GeneratePage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Generate Previews</h1>
         <p className="text-gray-600">
-          Create AI-powered previews for upcoming games on a selected day
+          Create AI-powered previews for upcoming games within a selected date range
         </p>
       </div>
 
@@ -138,23 +142,38 @@ export default function GeneratePage() {
                 </select>
               </div>
 
-              {/* Date Picker */}
+              {/* --- Date Range Picker --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Game Date
+                  Game Date Range
                 </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="date"
+                      value={fromDate}
+                      onChange={(e) => setFromDate(e.target.value)}
+                      className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => setToDate(e.target.value)}
+                      className="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                      required
+                    />
+                  </div>
                 </div>
+
                 <p className="text-xs text-gray-500 mt-1">
-                  Games starting on this local date will be fetched (converted to UTC range).
+                  Games within this local date range will be converted to UTC before calling the Odds API.
                 </p>
               </div>
 
@@ -248,8 +267,10 @@ export default function GeneratePage() {
                 <span className="font-medium">{selectedSport.toUpperCase()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Date</span>
-                <span className="font-medium">{selectedDate}</span>
+                <span className="text-gray-600">Date Range</span>
+                <span className="font-medium">
+                  {fromDate === toDate ? fromDate : `${fromDate} → ${toDate}`}
+                </span>
               </div>
             </div>
           </div>
